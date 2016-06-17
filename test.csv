@@ -1,0 +1,9 @@
+date,username,time,task,computer,stimfile
+06/14/2016,gru,14-Jun-2016 14:04:29,somdisFreq.m,dubonnet.stanford.edu,~/data/somdisFreq/test/160614_stim01.mat
+06/14/2016,gru,14-Jun-2016 14:16:05,somdisFreq.m,dubonnet.stanford.edu,~/data/somdisFreq/test/160614_stim02.mat
+06/14/2016,gru,14-Jun-2016 14:31:36,somdisFreq.m,dubonnet.stanford.edu,~/data/somdisFreq/test/160614_stim03.mat
+06/16/2016,gru,16-Jun-2016 15:05:15,somdisPS.m,dubonnet.stanford.edu,~/data/somdisPS/test/160616_stim01.mat
+06/17/2016,gru,17-Jun-2016 13:58:45,somdisNS.m,dubonnet.stanford.edu,~/data/somdisNS/test/160617_stim05.mat
+06/17/2016,gru,17-Jun-2016 14:05:06,somdisNS.m,dubonnet.stanford.edu,~/data/somdisNS/test/160617_stim06.mat
+06/17/2016,gru,17-Jun-2016 14:10:48,somdisNS.m,dubonnet.stanford.edu,~/data/somdisNS/test/160617_stim07.mat
+06/17/2016,gru,17-Jun-2016 14:30:27,somdisNS.m,dubonnet.stanford.edu,~/data/somdisNS/test/160617_stim08.mat

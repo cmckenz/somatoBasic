@@ -21,13 +21,13 @@ testing = false;
 myscreen = initScreen;
 
 % get the last stimfile
-%stimfile = getLastStimfile(myscreen,'stimfileNum=-1');
+stimfile = getLastStimfile(myscreen,'stimfileNum=-1');
 
 % task parameters
 task{1}.waitForBacktick = 1;
-task{1}.segmin = [0.25 0.75 4 2 2]; %added a 250ms initial segment to set up stim sound
-task{1}.segmax = [0.25 0.75 8 2 6]; %set stim/play stim/response delay/response interval/inter-trial interval
-task{1}.synchToVol = [0 0 0 0 1];
+task{1}.segmin = [0.25 0.75 2 2 2]; %added a 250ms initial segment to set up stim sound
+task{1}.segmax = [0.25 0.75 6 2 6]; %set stim/play stim/response delay/response interval/inter-trial interval
+task{1}.synchToVol = [1 0 1 0 0]; %synch before stimulus, responses
 task{1}.getResponse = [0 0 0 1 0];
 task{1}.parameter.pedestal = [0.5 0.25 0.125 0];
 task{1}.parameter.stimulus = [1 2 3];
@@ -215,7 +215,7 @@ stimulus.maxStim = 1;
 
 %Basic stimulus waveform - Sine Wave, Amplitude = 1 (or = 2 peak to peak),
 % Offset from beginning of file by 0.1s
-startTime = 0.1;
+startTime = 0.01;
 eventLength = 0.4;
 freq = 80;
 sampleRate = 8192;

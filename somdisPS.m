@@ -240,7 +240,7 @@ numPedestal = length(pedestal);
 stimulus.pedestal = pedestal;
 stimulus.numPedestal = numPedestal;
 stimulus.stimBase = stimBase;
-stimulus.deviceID = 1;
+stimulus.deviceID = 2;
 stimfile = [];
 % first time, initialize the staircases,
 if isempty(stimfile)

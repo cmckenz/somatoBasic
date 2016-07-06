@@ -240,18 +240,18 @@ numPedestal = length(pedestal);
 stimulus.pedestal = pedestal;
 stimulus.numPedestal = numPedestal;
 stimulus.stimBase = stimBase;
-stimulus.deviceID = 1;
+stimulus.deviceID = 2;
 stimfile = [];
 
-threshold1 = 0.2;
-threshold2 = 0.2;
-threshold3 = 0.2;
-threshold4 = 0.2;
+threshold1 = 0.05;
+threshold2 = 0.05;
+threshold3 = 0.05;
+threshold4 = 0.05;
 
-stimulus.stimVal(1,1:3) = threshold1*[1 1.5 2];
-stimulus.stimVal(2,1:3) = threshold2*[1 1.5 2];
-stimulus.stimVal(3,1:3) = threshold3*[1 1.5 2];
-stimulus.stimVal(4,1:3) = threshold4*[1 1.5 2];
+stimulus.stimVal(1,1:3) = threshold1*[1 2 4];
+stimulus.stimVal(2,1:3) = threshold2*[1 2 4];
+stimulus.stimVal(3,1:3) = threshold3*[1 2 4];
+stimulus.stimVal(4,1:3) = threshold4*[1 2 4];
   
   
 

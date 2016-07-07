@@ -30,6 +30,9 @@ task{1}{1}.parameter.stimulus = [1 2 3];
 task{1}{1}.randVars.uniform.side = [-1 1];
 task{1}{1}.random = 1;
 
+task{1}{2}.seglen = 2;
+
+
 testing = true;
 
 if testing
@@ -38,23 +41,44 @@ if testing
   task{1}{1}.segmax = [0.25 0.75 3]; %set stim/play stim/response delay/response interval/inter-trial interval
   task{1}{1}.parameter.pedestal = [0];
   task{1}{1}.synchToVol = [0 0 0];
+  task{1}{1}.numTrials = 1;
+  task{2}{1}.numTrials = 1;
 end
 
 %task parameters for attentional task
-task{2}{1}.segmin = 0.8
-task{2}{1}.segmax = 1.07%display letters for a not exactly half a second (which is TR - avoid simple divisibility by TR)
+task{2}{1}.seglen = 0.87; %display letters for a not exactly a multiple of half a second (which is TR - avoid simple divisibility by TR)
 task{2}{1}.parameter.letterNum = [1:26];
 task{2}{1}.random = 1;
 task{2}{1}.synchToVol = 0;
 task{2}{1}.randVars.uniform.lure = [zeros(1,9) 1];
 
+%count number of lure trials
+global numLure;
+numLure = 0;
 
+getresp = true;
 
-% initialize the task
-for phaseNum = 1:length(task{1})
-    [task{1}{phaseNum} myscreen] = initTask(task{1}{phaseNum}, myscreen, @startSegmentCallback1, @screenUpdateCallback1, @responseCallback1);
-    [task{2}{phaseNum} myscreen] = initTask(task{2}{phaseNum}, myscreen, @startSegmentCallback2, @screenUpdateCallback2, @responseCallback2);
+if getresp    
+    task{2}{2}.seglen = [10]; %terminate first seg with response
+    task{2}{2}.getResponse = [1 0];
+    task{2}{2}.random = 1;
+    task{2}{2}.waitForBacktick = 0;
+    task{2}{2}.synchToVol = [0 0];
+    task{2}{2}.parameter.adj = [-5:-1 1:5];
+    task{2}{2}.parameter.moreorless = [-1 1];
+    task{2}{2}.numTrials = 1;
+    task{2}{2}.randVars.calculated.correct = nan;
+    task{2}{2}.randVars.calculated.side = nan;
+    task{2}{2}.randVars.calculated.responseSide = nan;
 end
+
+
+% initialize the first task
+[task{1}{1} myscreen] = initTask(task{1}{1}, myscreen, @startSegmentCallback1, @screenUpdateCallback1, @responseCallback1);
+[task{1}{2} myscreen] = initTask(task{1}{2}, myscreen, @startSegmentCallback1p2, @screenUpdateCallback1p2, @responseCallback1p2);
+
+[task{2}{1} myscreen] = initTask(task{2}{1}, myscreen, @startSegmentCallback2, @screenUpdateCallback2, @responseCallback2);
+[task{2}{2} myscreen] = initTask(task{2}{2}, myscreen, @startSegmentCallback2p2, @screenUpdateCallback2p2, @responseCallback2p2);
 
 % init the stimulus
 global stimulus;
@@ -131,7 +155,7 @@ if task.thistrial.thisseg == 2
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% function that gets called at the start of each segment - somato
+% function that gets called at the start of each segment - attention
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [task myscreen] = startSegmentCallback2(task, myscreen)
@@ -139,12 +163,49 @@ function [task myscreen] = startSegmentCallback2(task, myscreen)
 %not much to do here really...
 if task.thistrial.lure == 1
     display('Target trial')
+    global numLure
+    numLure = numLure + 1;
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% function that gets called at the start of each segment - check
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [task myscreen] = startSegmentCallback2p2(task, myscreen)
+
+display('Last phase: checking target detection')
+
+global numLure;
+global probe;
+global probestring;
+probe = numLure - task.thistrial.adj;
+
+
+if task.thistrial.thisseg == 1
+    if task.thistrial.moreorless == -1
+        moreorless = 'less';
+    end
+    if task.thistrial.moreorless == 1
+        moreorless = 'more';
+    end
+    probestring = sprintf('Did you see the number 8 %s than %i times', moreorless, probe);
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% function that gets called at the start of each segment - na
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [task myscreen] = startSegmentCallback1p2(task, myscreen)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % function that gets called to draw the stimulus each frame
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [task myscreen] = screenUpdateCallback1(task, myscreen)
+
+%nothing to do here really...
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% function that gets called to draw the stimulus each frame
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [task myscreen] = screenUpdateCallback1p2(task, myscreen)
 
 %nothing to do here really...
 
@@ -166,6 +227,32 @@ if task.thistrial.lure == 1
     mglTextDraw( '8', [0 0], 0, 0)
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% function that gets called to draw the stimulus each frame
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function [task myscreen] = screenUpdateCallback2p2(task, myscreen)
+
+mglClearScreen();
+
+global probestring
+
+if isnan(task.thistrial.correct)
+    mglTextDraw(probestring, [0 0], 0, 0);
+    mglTextDraw('LEFT = YES, RIGHT = NO', [0 -5], 0, 0);
+end
+
+if ~isnan(task.thistrial.correct)
+        if ~task.thistrial.correct
+            mglTextDraw(probestring, [0 0], 0, 0);
+            mglTextDraw('Incorrect', [0 -5], 0, 0);
+        end
+        if task.thistrial.correct
+            mglTextDraw(probestring, [0 0], 0, 0);
+            mglTextDraw('Correct', [0 -5], 0, 0);
+        end
+end
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -176,7 +263,51 @@ function [task myscreen] = responseCallback1(task,myscreen)
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %    responseCallback    %
 %%%%%%%%%%%%%%%%%%%%%%%%%%
+function [task myscreen] = responseCallback1p2(task,myscreen)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    responseCallback    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [task myscreen] = responseCallback2(task,myscreen)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    responseCallback    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [task myscreen] = responseCallback2p2(task,myscreen)
+
+global probe
+global numLure
+
+if probe < numLure %correct is less than
+	if task.thistrial.moreorless == -1
+        task.thistrial.side = 1;
+    end
+    if task.thistrial.moreorless == 1
+        task.thistrial.side = -1;
+    end
+end
+    
+if probe > numLure %correct is more than
+    if task.thistrial.moreorless == -1
+        task.thistrial.side = -1;
+    end
+    if task.thistrial.moreorless == 1
+        task.thistrial.side = 1;
+    end
+end
+
+if task.thistrial.gotResponse < 1
+  % calculate response
+  task.thistrial.responseSide = (task.thistrial.whichButton-1.5)*2;
+  if task.thistrial.responseSide == task.thistrial.side
+    task.thistrial.correct = true;
+  else
+    task.thistrial.correct = false;
+  end
+end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % function to init the stimulus
@@ -215,15 +346,10 @@ stimulus.numPedestal = numPedestal;
 stimulus.stimBase = stimBase;
 stimulus.deviceID = 2;
 
-threshold1 = 0.05;
-threshold2 = 0.05;
-threshold3 = 0.05;
-threshold4 = 0.05;
-
-stimulus.stimVal(1,1:3) = threshold1*[1 2 4];
-stimulus.stimVal(2,1:3) = threshold2*[1 2 4];
-stimulus.stimVal(3,1:3) = threshold3*[1 2 4];
-stimulus.stimVal(4,1:3) = threshold4*[1 2 4];
+stimulus.stimVal(1,1:4) = [0.15 0.4 0.65 0.9]; %no peds on this run
+% stimulus.stimVal(2,1:3) = threshold2*[1 2 4];
+% stimulus.stimVal(3,1:3) = threshold3*[1 2 4];
+% stimulus.stimVal(4,1:3) = threshold4*[1 2 4];
   
   
 

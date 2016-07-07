@@ -29,7 +29,6 @@ task{1}{1}.parameter.pedestal = [0];
 task{1}{1}.parameter.stimulus = [1 2 3];
 task{1}{1}.randVars.uniform.side = [-1 1];
 task{1}{1}.random = 1;
-task{1}{1}.numtrials = 250;
 
 testing = true;
 
@@ -42,19 +41,37 @@ if testing
 end
 
 %task parameters for attentional task
-task{2}{1}.segmin = 0.51
-task{2}{1}.segmax = 0.61%display letters for a not exactly half a second (which is TR - avoid simple divisibility by TR)
+task{2}{1}.seglen = 0.87; %display letters for a not exactly a multiple of half a second (which is TR - avoid simple divisibility by TR)
 task{2}{1}.parameter.letterNum = [1:26];
 task{2}{1}.random = 1;
 task{2}{1}.synchToVol = 0;
 task{2}{1}.randVars.uniform.lure = [zeros(1,9) 1];
 
+%count number of lure trials
+global numLure;
+numLure = 0;
+
+getresp = true;
+
+if getresp    
+    task{2}{2}.seglen = [inf 2]; %terminate first seg with response
+    task{2}{2}.getResponse = [1 0];
+    task{2}{2}.random = 1;
+    task{2}{2}.waitForBacktick = 0;
+    task{2}{2}.synchToVol = [0 0];
+    task{2}{2}.parameter.adj = [-5:-1 1:5];
+    task{2}{2}.parameter.moreorless = [-1 1];
+    task{2}{2}.numTrials = 1;
+end
 
 
-% initialize the task
+% initialize the first task
+for phaseNum = 1:length(task{1})
+    [task{1}{phaseNum} myscreen] = initTask(task{1}{phaseNum}, myscreen, @startSegmentCallback1, @screenUpdateCallback1, @responseCallback1);
+end
 
-[task{1}{1} myscreen] = initTask(task{1}{1}, myscreen, @startSegmentCallback1, @screenUpdateCallback1, @responseCallback1);
-[task{2}{1} myscreen] = initTask(task{2}{, myscreen, @startSegmentCallback2, @screenUpdateCallback2, @responseCallback2);
+[task{2}{1} myscreen] = initTask(task{2}{1}, myscreen, @startSegmentCallback2, @screenUpdateCallback2, @responseCallback2);
+[task{2}{2} myscreen] = initTask(task{2}{2}, myscreen, @startSegmentCallback2p2, @screenUpdateCallback2p2, @responseCallback2p2);
 
 % init the stimulus
 global stimulus;
@@ -72,9 +89,10 @@ stimulus = myInitStimulus(stimulus,myscreen,task);
 % Main display loop
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 phaseNum = 1;
-while (phaseNum <= length(task)) && ~myscreen.userHitEsc
+while (phaseNum <= length(task{1})) && ~myscreen.userHitEsc
   % update the task
-  [task myscreen phaseNum] = updateTask(task,myscreen,phaseNum);
+  [task{1} myscreen phaseNum] = updateTask(task{1},myscreen,phaseNum);
+  [task{2} myscreen phaseNum] = updateTask(task{2},myscreen,phaseNum);
   % flip screen
   myscreen = tickScreen(myscreen,task);
 end
@@ -135,7 +153,45 @@ end
 
 function [task myscreen] = startSegmentCallback2(task, myscreen)
 
-%nothing to do here really...
+%not much to do here really...
+if task.thistrial.lure == 1
+    display('Target trial')
+    global numLure
+    numLure = numLure + 1;
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% function that gets called at the start of each segment - somato
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [task myscreen] = startSegmentCallback2p2(task, myscreen)
+
+display('Last phase: checking target detection')
+
+global numLure;
+global probe;
+global probestring;
+probe = numLure - task.thistrial.adj;
+
+
+if task.thistrial.thisseg == 1
+    if task.thistrial.moreorless == -1
+        moreorless = 'less';
+    end
+    if task.thistrial.moreorless == 1
+        moreorless = 'more';
+    end
+    probeString = sprintf('Did you see the number 8 %s than %i times', moreorless, probe);
+end
+
+if task.thistrial.thisseg == 2
+    if probe < numLure
+        %Correct answer is more than
+    end
+    
+    if probe > numlure
+        %Correct answer is less than
+    end
+end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % function that gets called to draw the stimulus each frame
@@ -153,13 +209,29 @@ function [task myscreen] = screenUpdateCallback2(task, myscreen)
 mglClearScreen();
 
 if task.thistrial.lure == 0
-    letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     lNum = task.thistrial.letterNum;
-    mglDrawText(letters(lNum), [0 0], 0, 0)
+    mglTextDraw(letters(lNum), [0 0], 0, 0)
 end
 
 if task.thistrial.lure == 1
-    mglDrawText( '8', [0 0], 0, 0)
+    mglTextDraw( '8', [0 0], 0, 0)
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% function that gets called to draw the stimulus each frame
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function [task myscreen] = screenUpdateCallback2p2(task, myscreen)
+mglClearScreen();
+
+if task.thistrial.thisseg == 1    
+    global probestring
+    mglTextDraw(probeString, [0 0], 0, 0);
+    mglTextDraw('LEFT = YES, RIGHT = NO', [0 5], 0, 0);
+end
+
+if task.thistrial.thisseg == 2
 end
 
 
@@ -173,6 +245,28 @@ function [task myscreen] = responseCallback1(task,myscreen)
 %    responseCallback    %
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 function [task myscreen] = responseCallback2(task,myscreen)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    responseCallback    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [task myscreen] = responseCallback2p2(task,myscreen)
+
+
+if task.thistrial.gotResponse < 1
+  % caluclate response
+  task.thistrial.responseSide = (task.thistrial.whichButton-1.5)*2;
+  if task.thistrial.responseSide == task.thistrial.side
+    task.thistrial.correct = true;
+  else
+    task.thistrial.correct = false;
+  end
+  % update appropriate staircase
+  staircaseNum = find(stimulus.pedestal==task.thistrial.pedestal);
+  stimulus.s(staircaseNum) = doStaircase('update',stimulus.s(staircaseNum),task.thistrial.correct);
+%  threshold = doStaircase('threshold',stimulus.s(staircaseNum));
+  disp(sprintf('  Response: %i Correct: %i Delta: %0.2f',task.thistrial.responseSide,task.thistrial.correct,task.thistrial.delta));
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % function to init the stimulus
@@ -204,7 +298,7 @@ stimBase = somTrial(somEvents, sampleRate);
 
 % determine pedestals
 params = getTaskParameters(myscreen,task);
-pedestal = params.originalTaskParameter.pedestal;
+pedestal = params{1}.originalTaskParameter.pedestal;
 numPedestal = length(pedestal);
 stimulus.pedestal = pedestal;
 stimulus.numPedestal = numPedestal;

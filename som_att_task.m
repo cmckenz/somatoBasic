@@ -29,11 +29,23 @@ task{1}{1}.parameter.pedestal = [0];
 task{1}{1}.parameter.stimulus = [1 2 3];
 task{1}{1}.randVars.uniform.side = [-1 1];
 task{1}{1}.random = 1;
-
 task{1}{2}.seglen = 2;
+task{1}{1}.numTrials = 999; %set task length by setting numtrials on cell 2
 
 
 testing = true;
+
+
+
+%task parameters for attentional task
+task{2}{1}.seglen = 0.87; %display letters for a not exactly a multiple of half a second (which is TR - avoid simple divisibility by TR)
+task{2}{1}.parameter.letterNum = [1:26];
+task{2}{1}.random = 1;
+task{2}{1}.synchToVol = 0;
+task{2}{1}.waitForBacktick = 1;
+task{2}{1}.randVars.uniform.lure = [zeros(1,9) 1];
+task{2}{1}.numTrials = 20;
+
 
 if testing
   task{1}{1}.waitForBacktick = 0;
@@ -41,16 +53,8 @@ if testing
   task{1}{1}.segmax = [0.25 0.75 3]; %set stim/play stim/response delay/response interval/inter-trial interval
   task{1}{1}.parameter.pedestal = [0];
   task{1}{1}.synchToVol = [0 0 0];
-  task{1}{1}.numTrials = 1;
-  task{2}{1}.numTrials = 1;
+  task{2}{1}.numTrials = 20;
 end
-
-%task parameters for attentional task
-task{2}{1}.seglen = 0.87; %display letters for a not exactly a multiple of half a second (which is TR - avoid simple divisibility by TR)
-task{2}{1}.parameter.letterNum = [1:26];
-task{2}{1}.random = 1;
-task{2}{1}.synchToVol = 0;
-task{2}{1}.randVars.uniform.lure = [zeros(1,9) 1];
 
 %count number of lure trials
 global numLure;

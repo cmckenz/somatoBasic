@@ -119,12 +119,12 @@ distractPed = task.thistrial.distractPed;
   % make sure we do not go over the maximum amplitude
   if stimulus.stimLeft > 1
       disp('WARNING: LEFT STIMULUS GREATER THAN 1 --> REDUCING STIMULUS INTENSITY');
-      disp(sprintf('L Stimulus of %.2f reduced to 1', stimulus.stimLeft));
+      disp('L Stimulus of %.2f reduced to 1', stimulus.stimLeft);
       stimulus.stimLeft = 1;
   end
   if stimulus.stimRight > 1
       disp('WARNING: RIGHT STIMULUS GREATER THAN 1 --> REDUCING STIMULUS INTENSITY');
-      disp(sprintf('R Stimulus of %.2f reduced to 1', stimulus.stimRight));
+      disp('R Stimulus of %.2f reduced to 1', stimulus.stimRight);
       stimulus.stimRight = 1;
   end
   % multiply to get the actual voltage amplitude
@@ -349,7 +349,7 @@ if isempty(stimfile)
 % subsequent times, continue staircases from where we left off
 else
   oldStimulus = stimfile.stimulus;
-  % make sure all is the same
+  % make sure all is the same NEED TO CHANGE THIS BIT HERE CAM
   if ~isfield(oldStimulus,'pedestal') || ~isfield(oldStimulus,'numPedestal') || ~isfield(oldStimulus,'s') || ~isequal(oldStimulus.pedestal,pedestal) || ~isequal(oldStimulus.numPedestal,numPedestal) || ~(length(oldStimulus.s) == numStairs)
     disp(sprintf('(somdis) !!! Previous stimfile has different conditions than this run, so restarting staircases !!!'));
     stimulus = myInitStimulus(stimulus,myscreen,task,[]);
@@ -358,10 +358,5 @@ else
   % if all is the same, then just reinit the staircases with the previous ones
   for iStaircase = 1:numStairs
     stimulus.s(iStaircase) = doStaircase('init',oldStimulus.s(iStaircase));
-    if isnan(stimulus.s(iStaircase).s.threshold)
-        disp(sprintf('Calculated threshold is NaN, reinitializing staircase number %i from scratch.', iStaircase));
-        stimulus.s(iStaircase) = doStaircase('init','upDown','nup=1','ndown=2','initialThreshold=0.3','initialStepsize=0.1','nTrials=40','stepRule=levitt','minThreshold=0');
-    end
-        
   end
 end

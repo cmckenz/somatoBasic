@@ -42,7 +42,7 @@ task{2}{1}.seglen = 0.87; %display letters for a not exactly a multiple of half 
 task{2}{1}.parameter.letterNum = [1:26];
 task{2}{1}.random = 1;
 task{2}{1}.synchToVol = 0;
-task{2}{1}.waitForBacktick = 1;
+task{2}{1}.waitForBacktick = 0;
 task{2}{1}.randVars.uniform.lure = [zeros(1,9) 1];
 task{2}{1}.numTrials = 476;
 

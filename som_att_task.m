@@ -33,7 +33,7 @@ task{1}{2}.seglen = 2;
 task{1}{1}.numTrials = 999; %set task length by setting numtrials on cell 2
 
 
-testing = true;
+testing = false;
 
 
 
@@ -44,7 +44,7 @@ task{2}{1}.random = 1;
 task{2}{1}.synchToVol = 0;
 task{2}{1}.waitForBacktick = 1;
 task{2}{1}.randVars.uniform.lure = [zeros(1,9) 1];
-task{2}{1}.numTrials = 20;
+task{2}{1}.numTrials = 476;
 
 
 if testing

@@ -1,0 +1,33 @@
+%% Staircase nums: L/R L/R
+
+day = '16'
+month = '12'
+year = '16'
+subj = 's350'
+
+
+files = dir(['~/data/somGetDelta/' subj '/' year month day '*.mat'])
+%%
+load(['~/data/somGetDelta/' subj '/' files(end).name])
+
+thresh = doStaircase('getThreshold', stimulus.s)
+
+index1 = find(thresh.weibullFitParams(:,1).y < 0.9)
+leftVal1 = thresh.weibullFitParams(:,1).x(max(index1));
+
+index2 = find(thresh.weibullFitParams(:,2).y < 0.9)
+rightVal1 = thresh.weibullFitParams(:,2).x(max(index2));
+
+index3 = find(thresh.weibullFitParams(:,3).y < 0.9)
+leftVal2 = thresh.weibullFitParams(:,3).x(max(index3));
+
+index4 = find(thresh.weibullFitParams(:,4).y < 0.9)
+rightVal2 = thresh.weibullFitParams(:,4).x(max(index4));
+
+
+
+
+leftMean = mean([leftVal1, leftVal2])
+rightMean = mean([rightVal1, rightVal2])
+
+grandMean = mean([leftMean, rightMean])

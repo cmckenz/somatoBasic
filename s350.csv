@@ -1,0 +1,13 @@
+date,username,time,task,computer,stimfile
+12/16/2016,gru,16-Dec-2016 16:06:18,somGetDelta.m,dubonnet.stanford.edu,~/data/somGetDelta/s350/161216_stim43.mat
+12/16/2016,gru,16-Dec-2016 16:07:39,somGetDelta.m,dubonnet.stanford.edu,~/data/somGetDelta/s350/161216_stim44.mat
+12/16/2016,gru,16-Dec-2016 16:17:59,somGetDelta.m,dubonnet.stanford.edu,~/data/somGetDelta/s350/161216_stim45.mat
+12/16/2016,gru,16-Dec-2016 16:26:19,somTestDelta.m,dubonnet.stanford.edu,~/data/somTestDelta/s350/161216_stim46.mat
+12/16/2016,gru,16-Dec-2016 16:44:45,somFixedDelta.m,dubonnet.stanford.edu,~/data/somFixedDelta/s350/161216_stim47.mat
+12/16/2016,gru,16-Dec-2016 16:57:07,somFixedDelta.m,dubonnet.stanford.edu,~/data/somFixedDelta/s350/161216_stim48.mat
+12/16/2016,gru,16-Dec-2016 17:15:50,somFixedDelta.m,dubonnet.stanford.edu,~/data/somFixedDelta/s350/161216_stim49.mat
+12/19/2016,gru,19-Dec-2016 14:50:05,somGetDelta.m,dubonnet.stanford.edu,~/data/somGetDelta/s350/161219_stim55.mat
+12/19/2016,gru,19-Dec-2016 15:07:22,somFixedFocal.m,dubonnet.stanford.edu,~/data/somFixedFocal/s350/161219_stim56.mat
+12/19/2016,gru,19-Dec-2016 15:15:25,somFixedFocal.m,dubonnet.stanford.edu,~/data/somFixedFocal/s350/161219_stim57.mat
+12/19/2016,gru,19-Dec-2016 15:31:28,somFixedDelta.m,dubonnet.stanford.edu,~/data/somFixedDelta/s350/161219_stim58.mat
+12/19/2016,gru,19-Dec-2016 15:51:29,somFixedDelta.m,dubonnet.stanford.edu,~/data/somFixedDelta/s350/161219_stim59.mat

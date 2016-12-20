@@ -1,0 +1,6 @@
+date,username,time,task,computer,stimfile
+12/16/2016,gru,16-Dec-2016 15:12:17,somGetDelta.m,dubonnet.stanford.edu,~/data/somGetDelta/s387/161216_stim38.mat
+12/16/2016,gru,16-Dec-2016 15:21:09,somGetDelta.m,dubonnet.stanford.edu,~/data/somGetDelta/s387/161216_stim39.mat
+12/16/2016,gru,16-Dec-2016 15:24:57,somTestDelta.m,dubonnet.stanford.edu,~/data/somTestDelta/s387/161216_stim40.mat
+12/16/2016,gru,16-Dec-2016 15:42:45,somFixedDelta.m,dubonnet.stanford.edu,~/data/somFixedDelta/s387/161216_stim41.mat
+12/16/2016,gru,16-Dec-2016 16:01:20,somFixedDelta.m,dubonnet.stanford.edu,~/data/somFixedDelta/s387/161216_stim42.mat

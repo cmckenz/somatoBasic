@@ -1,9 +1,9 @@
 % somdis.m
 %
 %        $Id:$ 
-%      usage: somdisAtt(oldStairs)
+%      usage: somFixedDelta(delta)
 %         by: cam mckenzie
-%       date: jul/aug 16
+%       date: dec 16
 %    purpose: Somato discrimination task with attentional manipulation
 %
 %               Observer discriminates which of two temporal intervals
@@ -11,8 +11,13 @@
 %               Two piezo buzzers are used, only one of which has increment
 %               applied. If attended condition, arrow indicates left (-1)/
 %               right (1) buzzer has increment, else both equally likely.
-% Have to put in response feedback!!!
-function myscreen = somdisAtt(oldStairs, reInitFlag)
+% 
+%           This takes a fixed delta and uses for all conditions
+%
+%               Start by running somGetDelta to get delta for middle
+%               pedestal
+%
+function myscreen = somFixedFocal(delta)
 
 %this is the correct setting for dubonnet... (now redundant)
 % system('osascript -e "set volume 6"') USE VOLUME SETTING IN SCREEN
@@ -22,12 +27,6 @@ function myscreen = somdisAtt(oldStairs, reInitFlag)
 myscreen = initScreen('somato');
 %myscreen = initScreen('test');
 
-if oldStairs
-    % get the last stimfile
-    stimfile = getLastStimfile(myscreen,'stimfileNum=-1');
-else
-    stimfile = [];
-end
 
 % task parameters
 task{1}.waitForBacktick = 0;
@@ -36,12 +35,11 @@ task{1}.segmax = [1 0.5 0.2 0.5 0.3 2 1.5];
 task{1}.synchToVol = [0 0 0 0 0 0 0];
 task{1}.getResponse = [0 0 0 1 1 1 0];
 %task{1}.parameter.pedestal = [0 0.125 0.25 0.5]; old parameters
-task{1}.parameter.pedestal = [0 0.075 0.15 0.2 0.3 0.45 0.6];
-task{1}.randVars.block.distractPed = task{1}.parameter.pedestal;
+task{1}.parameter.pedestal = [0.2 0.45 0.7];
+task{1}.parameter.distractPed = task{1}.parameter.pedestal;
 task{1}.parameter.side = [-1 1];
-task{1}.parameter.attention = [0 1];
+task{1}.parameter.attention = [1];
 task{1}.randVars.uniform.interval = [0 1];
-task{1}.randVars.calculated.threshold = nan;
 task{1}.randVars.calculated.correct = nan;
 task{1}.randVars.calculated.responseInterval = nan;
 task{1}.freq = 80;
@@ -62,13 +60,10 @@ end
 % init the stimulus
 global stimulus;
 myscreen = initStimulus('stimulus',myscreen);
-stimulus = myInitStimulus(stimulus,myscreen,task,stimfile, reInitFlag);
 
+stimfile = [];
+stimulus = myInitStimulus(stimulus,myscreen,task,stimfile, delta);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% run the eye calibration
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%myscreen = eyeCalibDisp(myscreen);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Main display loop
@@ -94,27 +89,13 @@ global stimulus;
 if task.thistrial.thisseg == 1
   % time, so that we can preciesly set the two stimulation intervals
   timeNow = mglGetSecs;
-  % pedestal stimulus strength
-  ped = task.thistrial.pedestal;
-  % delta 
-  % update appropriate staircase
-  pedInd = find(stimulus.pedestal==task.thistrial.pedestal);
-  attInd = find(stimulus.attention == task.thistrial.attention);
-  sideInd = find(stimulus.side== task.thistrial.side);
-  
-staircaseNum = (pedInd - 1)*(stimulus.numAtt*stimulus.numSide) + (attInd - 1)*stimulus.numSide + sideInd;
 
-% stimulation level on distractor side?
-distractPed = task.thistrial.distractPed;
+    %pedestal
+    ped = task.thistrial.pedestal;
 
+    % stimulation level on distractor side?
+    distractPed = task.thistrial.distractPed;
 
-  [stimulus.delta stimulus.s(staircaseNum)] = doStaircase('testValue',stimulus.s(staircaseNum));
-  if (stimulus.delta < 0) stimulus.delta = 0;end
-  % if this is ped == -1, then it means to give max difference randomly betwen sides
-  if ped == -1
-    ped = 0;
-    stimulus.delta = 1;
-  end
   % add the delta to the correct location
   if task.thistrial.side == -1
     stimulus.stimLeft = ped + stimulus.delta;
@@ -186,15 +167,7 @@ if task.thistrial.thisseg == 7
   % no response
   if isnan(task.thistrial.correct)
     task.thistrial.correct = false;
-    % update appropriate staircase
-  pedInd = find(stimulus.pedestal==task.thistrial.pedestal);
-  attInd = find(stimulus.attention == task.thistrial.attention);
-  sideInd = find(stimulus.side== task.thistrial.side);
-  
-  staircaseNum = (pedInd - 1)*(stimulus.numAtt*stimulus.numSide) + (attInd - 1)*stimulus.numSide + sideInd;
 
-    stimulus.s(staircaseNum) = doStaircase('update',stimulus.s(staircaseNum),task.thistrial.correct);
-    %  threshold = doStaircase('threshold',stimulus.s(staircaseNum));
     disp(sprintf('  No response. Delta: %0.2f',task.thistrial.delta));
   end
 end
@@ -298,15 +271,7 @@ if task.thistrial.gotResponse < 1
     task.thistrial.correct = false;
   end
   
-  % update appropriate staircase
-  pedInd = find(stimulus.pedestal==task.thistrial.pedestal);
-  attInd = find(stimulus.attention == task.thistrial.attention);
-  sideInd = find(stimulus.side== task.thistrial.side);
   
-  staircaseNum = (pedInd - 1)*(stimulus.numAtt*stimulus.numSide) + (attInd - 1)*stimulus.numSide + sideInd;
-  
-  stimulus.s(staircaseNum) = doStaircase('update',stimulus.s(staircaseNum),task.thistrial.correct);
-%  threshold = doStaircase('threshold',stimulus.s(staircaseNum));
   disp(sprintf('  Response: %i Correct: %i Delta: %0.2f',task.thistrial.responseInterval,task.thistrial.correct,task.thistrial.delta));
 end
 
@@ -314,7 +279,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % function to init the stimulus
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function stimulus = myInitStimulus(stimulus,myscreen,task,stimfile, reInitFlag)
+function stimulus = myInitStimulus(stimulus,myscreen,task,stimfile, delta)
 
 % set the maximum amplitude
 stimulus.maxStim = 1;
@@ -338,67 +303,6 @@ stimBase = [stimBase; stimBase];
 stimulus.stimBase = stimBase;
 % stimulus.waitBase = waitBase;
 
-stimulus.deviceID = 2; %deviceID for sound
+stimulus.deviceID = 1; %deviceID for sound
 
-% determine pedestals and number of params so can init the staircases
-params = getTaskParameters(myscreen,task);
-
-pedestal = params.originalTaskParameter.pedestal;
-numPedestal = length(pedestal);
-stimulus.pedestal = pedestal;
-stimulus.numPedestal = numPedestal;
-
-side = params.originalTaskParameter.side;
-numSides = length(side);
-stimulus.side = side;
-stimulus.numSide = numSides;
-
-attention = params.originalTaskParameter.attention;
-numAtt = length(attention);
-stimulus.attention = attention;
-stimulus.numAtt = numAtt;
-
-%get the last stimfile if it's around...
-
-% first time, initialize the staircases,
-%need staircases for each pedestal, side, attention condition
-numStairs = numPedestal * numSides * numAtt;
-
-if isempty(stimfile)
-  for iStaircase = 1:numStairs
-    stimulus.s(iStaircase) = doStaircase('init','upDown','nup=1','ndown=2','initialThreshold=0.3','initialStepsize=0.1','nTrials=48','stepRule=levitt','minThreshold=0');
-  end
-% subsequent times, continue staircases from where we left off
-else
-    if reInitFlag == 0;
-        oldStimulus = stimfile.stimulus;
-        if ~isfield(oldStimulus,'pedestal') || ~isfield(oldStimulus,'numPedestal') || ~isfield(oldStimulus,'s') || ~isequal(oldStimulus.pedestal,pedestal) || ~isequal(oldStimulus.numPedestal,numPedestal) || ~(length(oldStimulus.s) == numStairs)
-            disp(sprintf('(somdis) !!! Previous stimfile has different conditions than this run, so restarting staircases !!!'));
-            disp('cannot continue staircase from last run withough reinit - restarting')
-            stimulus = myInitStimulus(stimulus,myscreen,task,[], 1);
-            return
-        else
-            stimulus = stimfile.stimulus;
-            disp('continuing staircase from last run withough reinit')
-        end
-    end
-    
-    if reInitFlag == 1; %if we are reinitializing the stairs
-        oldStimulus = stimfile.stimulus;
-        % make sure all is the same
-        if ~isfield(oldStimulus,'pedestal') || ~isfield(oldStimulus,'numPedestal') || ~isfield(oldStimulus,'s') || ~isequal(oldStimulus.pedestal,pedestal) || ~isequal(oldStimulus.numPedestal,numPedestal) || ~(length(oldStimulus.s) == numStairs)
-            disp(sprintf('(somdis) !!! Previous stimfile has different conditions than this run, so restarting staircases !!!'));
-            stimulus = myInitStimulus(stimulus,myscreen,task,[], 1);
-            return
-        end
-        % if all is the same, then just reinit the staircases with the previous ones
-        for iStaircase = 1:numStairs
-            stimulus.s(iStaircase) = doStaircase('init',oldStimulus.s(iStaircase));
-            if isnan(stimulus.s(iStaircase).s.threshold)
-                disp(sprintf('Calculated threshold is NaN, reinitializing staircase number %i from scratch.', iStaircase));
-                stimulus.s(iStaircase) = doStaircase('init','upDown','nup=1','ndown=2','initialThreshold=0.3','initialStepsize=0.1','nTrials=48','stepRule=levitt','minThreshold=0');
-            end
-            
-        end
-    end
-end
+stimulus.delta = delta;

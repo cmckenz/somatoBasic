@@ -1,7 +1,7 @@
 % somdis.m
 %
 %        $Id:$ 
-%      usage: somdisAtt(oldStairs)
+%      usage: somGetDelta()
 %         by: cam mckenzie
 %       date: jul/aug 16
 %    purpose: Somato discrimination task with attentional manipulation
@@ -12,7 +12,7 @@
 %               applied. If attended condition, arrow indicates left (-1)/
 %               right (1) buzzer has increment, else both equally likely.
 % Have to put in response feedback!!!
-function myscreen = somdisAtt(oldStairs, reInitFlag)
+function myscreen = somGetDelta()
 
 %this is the correct setting for dubonnet... (now redundant)
 % system('osascript -e "set volume 6"') USE VOLUME SETTING IN SCREEN
@@ -22,12 +22,9 @@ function myscreen = somdisAtt(oldStairs, reInitFlag)
 myscreen = initScreen('somato');
 %myscreen = initScreen('test');
 
-if oldStairs
-    % get the last stimfile
-    stimfile = getLastStimfile(myscreen,'stimfileNum=-1');
-else
-    stimfile = [];
-end
+
+stimfile = [];
+
 
 % task parameters
 task{1}.waitForBacktick = 0;
@@ -35,11 +32,11 @@ task{1}.segmin = [1 0.5 0.2 0.5 0.3 2 1]; %attention cue, stimulus interval 1, s
 task{1}.segmax = [1 0.5 0.2 0.5 0.3 2 1.5];
 task{1}.synchToVol = [0 0 0 0 0 0 0];
 task{1}.getResponse = [0 0 0 1 1 1 0];
-%task{1}.parameter.pedestal = [0 0.125 0.25 0.5]; old parameters
-task{1}.parameter.pedestal = [0 0.075 0.15 0.2 0.3 0.45 0.6];
-task{1}.randVars.block.distractPed = task{1}.parameter.pedestal;
+task{1}.parameter.pedestal = 0.45;
+task{1}.randVars.block.distractPed = 0;
 task{1}.parameter.side = [-1 1];
-task{1}.parameter.attention = [0 1];
+task{1}.parameter.attention = 1; %note that you hard-coded this at line 209 so if you change it go change it there too
+task{1}.parameter.stairDummy = [1 2];
 task{1}.randVars.uniform.interval = [0 1];
 task{1}.randVars.calculated.threshold = nan;
 task{1}.randVars.calculated.correct = nan;
@@ -48,7 +45,7 @@ task{1}.freq = 80;
 task{1}.onTime = 0.5;
 task{1}.waitTime = 0.2;
 task{1}.random = 1;
-task{1}.numBlocks = 5;
+task{1}.numTrials = 80;
 
 
 
@@ -62,7 +59,7 @@ end
 % init the stimulus
 global stimulus;
 myscreen = initStimulus('stimulus',myscreen);
-stimulus = myInitStimulus(stimulus,myscreen,task,stimfile, reInitFlag);
+stimulus = myInitStimulus(stimulus,myscreen,task,stimfile);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -99,10 +96,10 @@ if task.thistrial.thisseg == 1
   % delta 
   % update appropriate staircase
   pedInd = find(stimulus.pedestal==task.thistrial.pedestal);
-  attInd = find(stimulus.attention == task.thistrial.attention);
+  dummyInd = find(stimulus.stairDummy == task.thistrial.stairDummy);
   sideInd = find(stimulus.side== task.thistrial.side);
   
-staircaseNum = (pedInd - 1)*(stimulus.numAtt*stimulus.numSide) + (attInd - 1)*stimulus.numSide + sideInd;
+staircaseNum = (pedInd - 1)*(stimulus.numDummy*stimulus.numSide) + (dummyInd - 1)*stimulus.numSide + sideInd;
 
 % stimulation level on distractor side?
 distractPed = task.thistrial.distractPed;
@@ -188,10 +185,10 @@ if task.thistrial.thisseg == 7
     task.thistrial.correct = false;
     % update appropriate staircase
   pedInd = find(stimulus.pedestal==task.thistrial.pedestal);
-  attInd = find(stimulus.attention == task.thistrial.attention);
+  dummyInd = find(stimulus.stairDummy == task.thistrial.stairDummy);
   sideInd = find(stimulus.side== task.thistrial.side);
   
-  staircaseNum = (pedInd - 1)*(stimulus.numAtt*stimulus.numSide) + (attInd - 1)*stimulus.numSide + sideInd;
+  staircaseNum = (pedInd - 1)*(stimulus.numDummy*stimulus.numSide) + (dummyInd - 1)*stimulus.numSide + sideInd;
 
     stimulus.s(staircaseNum) = doStaircase('update',stimulus.s(staircaseNum),task.thistrial.correct);
     %  threshold = doStaircase('threshold',stimulus.s(staircaseNum));
@@ -208,6 +205,8 @@ global stimulus
 
 % display attention cue
 mglClearScreen;
+
+task.thistrial.attention = 1;
 
 if any(task.thistrial.thisseg == [1 5 6])
     mglFixationCross(0.75, 0.75, [1 1 1]); % White cross for pre-stim and response intervals
@@ -300,10 +299,10 @@ if task.thistrial.gotResponse < 1
   
   % update appropriate staircase
   pedInd = find(stimulus.pedestal==task.thistrial.pedestal);
-  attInd = find(stimulus.attention == task.thistrial.attention);
+  dummyInd = find(stimulus.stairDummy == task.thistrial.stairDummy);
   sideInd = find(stimulus.side== task.thistrial.side);
   
-  staircaseNum = (pedInd - 1)*(stimulus.numAtt*stimulus.numSide) + (attInd - 1)*stimulus.numSide + sideInd;
+  staircaseNum = (pedInd - 1)*(stimulus.numDummy*stimulus.numSide) + (dummyInd - 1)*stimulus.numSide + sideInd;
   
   stimulus.s(staircaseNum) = doStaircase('update',stimulus.s(staircaseNum),task.thistrial.correct);
 %  threshold = doStaircase('threshold',stimulus.s(staircaseNum));
@@ -314,7 +313,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % function to init the stimulus
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function stimulus = myInitStimulus(stimulus,myscreen,task,stimfile, reInitFlag)
+function stimulus = myInitStimulus(stimulus,myscreen,task,stimfile)
 
 % set the maximum amplitude
 stimulus.maxStim = 1;
@@ -338,7 +337,7 @@ stimBase = [stimBase; stimBase];
 stimulus.stimBase = stimBase;
 % stimulus.waitBase = waitBase;
 
-stimulus.deviceID = 2; %deviceID for sound
+stimulus.deviceID = 1; %deviceID for sound
 
 % determine pedestals and number of params so can init the staircases
 params = getTaskParameters(myscreen,task);
@@ -353,20 +352,22 @@ numSides = length(side);
 stimulus.side = side;
 stimulus.numSide = numSides;
 
-attention = params.originalTaskParameter.attention;
-numAtt = length(attention);
-stimulus.attention = attention;
-stimulus.numAtt = numAtt;
+stairDummy = params.originalTaskParameter.stairDummy;
+numDummy = length(stairDummy);
+stimulus.stairDummy = stairDummy;
+stimulus.numDummy = numDummy;
 
 %get the last stimfile if it's around...
 
 % first time, initialize the staircases,
 %need staircases for each pedestal, side, attention condition
-numStairs = numPedestal * numSides * numAtt;
+numStairs = numPedestal * numSides * numDummy;
+
+reInitFlag = 0;
 
 if isempty(stimfile)
   for iStaircase = 1:numStairs
-    stimulus.s(iStaircase) = doStaircase('init','upDown','nup=1','ndown=2','initialThreshold=0.3','initialStepsize=0.1','nTrials=48','stepRule=levitt','minThreshold=0');
+    stimulus.s(iStaircase) = doStaircase('init','upDown','nup=1','ndown=2','initialThreshold=0.3','initialStepsize=0.1','nTrials=20','stepRule=levitt','minThreshold=0');
   end
 % subsequent times, continue staircases from where we left off
 else
